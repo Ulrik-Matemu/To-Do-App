@@ -10,12 +10,14 @@ function addTask() {
 
     if (taskText !== '') {
         const taskList = document.getElementById('taskList');
-        const taskItem = createTaskElement(taskText);
+        const taskItem = createTaskElement(taskText, false);
 
         taskList.appendChild(taskItem);
 
         //Save task to local storage
-        saveTasksToLocalStorage(taskText);
+        saveTasksToLocalStorage(taskText, false);
+
+        updateProgress();
 
         taskInput.value = '';
 
@@ -25,7 +27,7 @@ function addTask() {
     }
 }
 
-function createTaskElement(taskText) {
+function createTaskElement(taskText, isCompleted) {
     const taskItem = document.createElement('li');
 
     const taskSpan = document.createElement('span');
@@ -41,6 +43,7 @@ function createTaskElement(taskText) {
             if (deleteConfirmation) {
                 taskItem.remove();
             deleteTaskFromLocalStorage(taskText);
+            updateProgress();
             } else {
                 alert('Delete Canceled');
             }
@@ -51,8 +54,15 @@ function createTaskElement(taskText) {
     taskSpan.addEventListener('click', 
         function () {
             taskItem.classList.toggle('completed');
+
+            updateTasksStatusInLocalStorage(taskText, taskItem.classList.contains('completed'));
+            updateProgress();
         }
     );
+
+    if (isCompleted) {
+        taskItem.classList.add('completed');
+    }
 
     taskItem.appendChild(taskSpan);
     taskItem.appendChild(deleteButton);
@@ -60,10 +70,10 @@ function createTaskElement(taskText) {
     return taskItem;
 }
 
-function saveTasksToLocalStorage(taskText) {
+function saveTasksToLocalStorage(taskText, isCompleted) {
     let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
-    tasks.push(taskText);
+    tasks.push({ text: taskText, completed: isCompleted });
     localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
@@ -72,20 +82,33 @@ function loadTasksFromLocalStorage() {
 
     const taskList = document.getElementById('taskList');
 
-    tasks.forEach(taskText => {
-        const taskItem = createTaskElement(taskText);
+    tasks.forEach(task => {
+        const taskItem = createTaskElement(task.text, task.completed);
         taskList.appendChild(taskItem);
     });
+
+    updateProgress();
 }
 
 
 function deleteTaskFromLocalStorage(taskText) {
     let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
-    tasks = tasks.filter(task => task !== taskText);
+    tasks = tasks.filter(task => task.text !== taskText);
     localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
+function updateTasksStatusInLocalStorage(taskText, isCompleted) {
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    
+    tasks = tasks.map(task => {
+        if (task.text === taskText) {
+            return { text: task.text, completed: isCompleted };
+        }
+        return task;
+    });
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
 
 // Random Quote Generator.
 const quotes = [
@@ -132,3 +155,19 @@ function displayRandomQuote() {
 }
 
 setInterval(displayRandomQuote, 10000);
+
+function updateProgress() {
+    const taskItems = document.querySelectorAll('#taskList li');
+    const completedTasks = document.querySelectorAll('#taskList li.completed');
+
+    const totalTasks = taskItems.length;
+    const completedCount = completedTasks.length;
+
+    const progressText = `${completedCount} of ${totalTasks} completed`;
+
+    document.getElementById('taskProgress').textContent = progressText;
+
+    const progressPercent = totalTasks === 0 ? 0 : (completedCount / totalTasks) * 100;
+
+    document.getElementById('progressBar').value = progressPercent;
+}
