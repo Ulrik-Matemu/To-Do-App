@@ -30,6 +30,12 @@ body {
     z-index: 0;
 }
 
+@media (max-width: 460px) {
+    .container {
+        width: 380px;
+    }
+}
+
 h1 {
     margin-top: 10px;
     margin-bottom: 10px;
@@ -46,6 +52,8 @@ h1 {
     margin-bottom: 20px;
     background-color: silver;
 }
+
+
 
 #quote {
     text-align: center;
