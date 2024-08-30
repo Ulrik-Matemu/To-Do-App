@@ -30,7 +30,7 @@ body {
     z-index: 0;
 }
 
-@media (max-width: 460px) {
+@media (max-width: 414px) {
     .container {
         width: 380px;
     }
